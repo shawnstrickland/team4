@@ -81,49 +81,52 @@ resource "aws_iam_role_policy_attachment" "s3_policy_attach" {
   policy_arn = aws_iam_policy.s3_policy.arn
 }
 
-resource "aws_api_gateway_rest_api" "MyS3" {
-  name        = "MyS3"
-  description = "API for S3 Integration"
+resource "aws_api_gateway_rest_api" "Team4Backend" {
+  name        = "Team4Backend"
+  description = "Team 4 Backend API"
 }
 
-resource "aws_api_gateway_resource" "Folder" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
-  parent_id   = aws_api_gateway_rest_api.MyS3.root_resource_id
-  path_part   = "{folder}"
-}
+# resource "aws_api_gateway_resource" "Folder" {
+#   rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
+#   parent_id   = aws_api_gateway_rest_api.Team4Backend.root_resource_id
+#   path_part   = "{folder}"
+# }
 
 resource "aws_api_gateway_resource" "Item" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
-  parent_id   = aws_api_gateway_resource.Folder.id
-  path_part   = "{item}"
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
+  # parent_id   = aws_api_gateway_resource.Folder.id
+  parent_id = aws_api_gateway_rest_api.Team4Backend.root_resource_id
+  path_part = "{item+}"
 }
 
 resource "aws_api_gateway_method" "GetItem" {
-  rest_api_id   = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id   = aws_api_gateway_rest_api.Team4Backend.id
   resource_id   = aws_api_gateway_resource.Item.id
   http_method   = "GET"
   authorization = "AWS_IAM"
 
   request_parameters = {
-    "method.request.path.folder" = true,
-    "method.request.path.item"   = true,
+    # "method.request.path.folder" = true,
+    "method.request.path.item" = true,
   }
 }
 
 resource "aws_api_gateway_method" "PutItem" {
-  rest_api_id   = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id   = aws_api_gateway_rest_api.Team4Backend.id
   resource_id   = aws_api_gateway_resource.Item.id
   http_method   = "PUT"
   authorization = "AWS_IAM"
 
   request_parameters = {
-    "method.request.path.folder" = true,
-    "method.request.path.item"   = true,
+    # "method.request.path.folder" = true,
+    "method.request.path.item"                  = true,
+    "method.request.header.Content-Disposition" = true
+    "method.request.header.Content-Type"        = true
   }
 }
 
 resource "aws_api_gateway_integration" "S3Integration" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
 
@@ -131,19 +134,19 @@ resource "aws_api_gateway_integration" "S3Integration" {
   integration_http_method = "GET"
 
   request_parameters = {
-    "integration.request.path.folder" = "method.request.path.folder",
-    "integration.request.path.item"   = "method.request.path.item"
+    # "integration.request.path.folder" = "method.request.path.folder",
+    "integration.request.path.item" = "method.request.path.item"
   }
 
   type = "AWS"
 
   # See uri description: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
-  uri         = "arn:aws:apigateway:${var.region}:s3:path//{folder}/{item}"
+  uri         = "arn:aws:apigateway:${var.region}:s3:path/${var.s3-csv-bucket}/{item}"
   credentials = aws_iam_role.s3_api_gateyway_role.arn
 }
 
 resource "aws_api_gateway_integration" "S3IntegrationPut" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
 
@@ -151,33 +154,35 @@ resource "aws_api_gateway_integration" "S3IntegrationPut" {
   integration_http_method = "PUT"
 
   request_parameters = {
-    "integration.request.path.folder" = "method.request.path.folder",
-    "integration.request.path.item"   = "method.request.path.item"
+    # "integration.request.path.folder" = "method.request.path.folder",
+    "integration.request.path.item"                  = "method.request.path.item"
+    "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition"
+    "integration.request.header.Content-Type"        = "method.request.header.Content-Type"
   }
 
   type = "AWS"
 
   # See uri description: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
-  uri         = "arn:aws:apigateway:${var.region}:s3:path//{folder}/{item}"
+  uri         = "arn:aws:apigateway:${var.region}:s3:path/${var.s3-csv-bucket}/{item}"
   credentials = aws_iam_role.s3_api_gateyway_role.arn
 }
 
 resource "aws_api_gateway_method_response" "i200" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = "200"
 
   response_parameters = {
     "method.response.header.Content-Disposition" = true
-    "method.response.header.Content-Length"      = true
+    "method.response.header.Content-Type"        = true
   }
 }
 
 resource "aws_api_gateway_method_response" "i400" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = "400"
@@ -186,7 +191,7 @@ resource "aws_api_gateway_method_response" "i400" {
 resource "aws_api_gateway_method_response" "i500" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = "500"
@@ -195,21 +200,21 @@ resource "aws_api_gateway_method_response" "i500" {
 resource "aws_api_gateway_integration_response" "i200IntegrationResponse" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = aws_api_gateway_method_response.i200.status_code
 
   response_parameters = {
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition"
-    "method.response.header.Content-Length"      = "integration.response.header.Content-Length"
+    "method.response.header.Content-Type"        = "integration.response.header.Content-Type"
   }
 }
 
 resource "aws_api_gateway_integration_response" "i400IntegrationResponse" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = aws_api_gateway_method_response.i400.status_code
@@ -220,7 +225,7 @@ resource "aws_api_gateway_integration_response" "i400IntegrationResponse" {
 resource "aws_api_gateway_integration_response" "i500IntegrationResponse" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.GetItem.http_method
   status_code = aws_api_gateway_method_response.i500.status_code
@@ -229,21 +234,21 @@ resource "aws_api_gateway_integration_response" "i500IntegrationResponse" {
 }
 
 resource "aws_api_gateway_method_response" "i200Put" {
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = "200"
 
   response_parameters = {
     "method.response.header.Content-Disposition" = true
-    "method.response.header.Content-Length"      = true
+    "method.response.header.Content-Type"        = true
   }
 }
 
 resource "aws_api_gateway_method_response" "i400Put" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = "400"
@@ -252,7 +257,7 @@ resource "aws_api_gateway_method_response" "i400Put" {
 resource "aws_api_gateway_method_response" "i500Put" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = "500"
@@ -261,21 +266,21 @@ resource "aws_api_gateway_method_response" "i500Put" {
 resource "aws_api_gateway_integration_response" "i200IntegrationResponsePut" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = aws_api_gateway_method_response.i200.status_code
 
   response_parameters = {
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition"
-    "method.response.header.Content-Length"      = "integration.response.header.Content-Length"
+    "method.response.header.Content-Type"        = "integration.response.header.Content-Type"
   }
 }
 
 resource "aws_api_gateway_integration_response" "i400IntegrationResponsePut" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = aws_api_gateway_method_response.i400.status_code
@@ -286,7 +291,7 @@ resource "aws_api_gateway_integration_response" "i400IntegrationResponsePut" {
 resource "aws_api_gateway_integration_response" "i500IntegrationResponsePut" {
   depends_on = [aws_api_gateway_integration.S3Integration]
 
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   resource_id = aws_api_gateway_resource.Item.id
   http_method = aws_api_gateway_method.PutItem.http_method
   status_code = aws_api_gateway_method_response.i500.status_code
@@ -296,8 +301,8 @@ resource "aws_api_gateway_integration_response" "i500IntegrationResponsePut" {
 
 resource "aws_api_gateway_deployment" "S3APIDeployment" {
   depends_on  = [aws_api_gateway_integration.S3Integration, aws_api_gateway_integration.S3IntegrationPut]
-  rest_api_id = aws_api_gateway_rest_api.MyS3.id
-  stage_name  = "MyS3"
+  rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
+  stage_name  = "Team4Backend"
 }
 
 resource "aws_lambda_function" "parse_csv_function" {
