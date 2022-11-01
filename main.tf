@@ -14,25 +14,6 @@ provider "aws" {
   region  = var.region
 }
 
-resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-}
 
 # Create S3 Full Access Policy
 resource "aws_iam_policy" "s3_policy" {
@@ -86,17 +67,10 @@ resource "aws_api_gateway_rest_api" "Team4Backend" {
   description = "Team 4 Backend API"
 }
 
-# resource "aws_api_gateway_resource" "Folder" {
-#   rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
-#   parent_id   = aws_api_gateway_rest_api.Team4Backend.root_resource_id
-#   path_part   = "{folder}"
-# }
-
 resource "aws_api_gateway_resource" "Item" {
   rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
-  # parent_id   = aws_api_gateway_resource.Folder.id
-  parent_id = aws_api_gateway_rest_api.Team4Backend.root_resource_id
-  path_part = "{item+}"
+  parent_id   = aws_api_gateway_rest_api.Team4Backend.root_resource_id
+  path_part   = "{item+}"
 }
 
 resource "aws_api_gateway_method" "GetItem" {
@@ -106,7 +80,6 @@ resource "aws_api_gateway_method" "GetItem" {
   authorization = "AWS_IAM"
 
   request_parameters = {
-    # "method.request.path.folder" = true,
     "method.request.path.item" = true,
   }
 }
@@ -118,7 +91,6 @@ resource "aws_api_gateway_method" "PutItem" {
   authorization = "AWS_IAM"
 
   request_parameters = {
-    # "method.request.path.folder" = true,
     "method.request.path.item"                  = true,
     "method.request.header.Content-Disposition" = true
     "method.request.header.Content-Type"        = true
@@ -134,7 +106,6 @@ resource "aws_api_gateway_integration" "S3Integration" {
   integration_http_method = "GET"
 
   request_parameters = {
-    # "integration.request.path.folder" = "method.request.path.folder",
     "integration.request.path.item" = "method.request.path.item"
   }
 
@@ -154,7 +125,6 @@ resource "aws_api_gateway_integration" "S3IntegrationPut" {
   integration_http_method = "PUT"
 
   request_parameters = {
-    # "integration.request.path.folder" = "method.request.path.folder",
     "integration.request.path.item"                  = "method.request.path.item"
     "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition"
     "integration.request.header.Content-Type"        = "method.request.header.Content-Type"
@@ -303,20 +273,4 @@ resource "aws_api_gateway_deployment" "S3APIDeployment" {
   depends_on  = [aws_api_gateway_integration.S3Integration, aws_api_gateway_integration.S3IntegrationPut]
   rest_api_id = aws_api_gateway_rest_api.Team4Backend.id
   stage_name  = "Team4Backend"
-}
-
-resource "aws_lambda_function" "parse_csv_function" {
-  filename      = "${path.module}/functions/parse-csv/src/parse-csv/bin/Release/net6.0/parse-csv.zip"
-  function_name = "parse-csv"
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "parse-csv::parse_csv.Function::FunctionHandler"
-  runtime       = "dotnet6"
-  environment {
-    variables = {
-      foo = "bar"
-    }
-  }
-  tags = {
-    Name = var.tag_name
-  }
 }
