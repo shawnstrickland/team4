@@ -6,3 +6,12 @@ resource "aws_s3_bucket" "upload_bucket" {
     Name = var.tag_name
   }
 }
+
+# Creating s3 resource for storing generated PDFs
+resource "aws_s3_bucket" "created_pdf_bucket" {
+  bucket = var.created_pdf_bucket
+  acl    = "private"
+  tags = {
+    Name = var.tag_name
+  }
+}

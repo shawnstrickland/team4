@@ -15,3 +15,10 @@ variable "s3-csv-bucket" {
   type        = string
   default     = "team-4-upload-bucket"
 }
+
+
+variable "created_pdf_bucket" {
+  description = "Bucket that stores created PDFs from Lambda"
+  type        = string
+  default     = "created-pdf-bucket"
+}
