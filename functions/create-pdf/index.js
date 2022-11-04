@@ -12,39 +12,17 @@ const s3 = new AWS.S3();
 
 exports.handler = async event => {
     try {
-        let payload = event
-
-        // Sample payload to use
-        // {
-        //     template_dynamic_data: 'string',
-        //     template_s3_bucket_details: {
-        //         OBJECT_KEY: 'string',
-        //         BUCKET_NAME: 'string'
-        //     },
-        //     pdf_s3_bucket_details: {
-        //         BUCKET_NAME: '',
-        //         PDF_FILE_INFO: {
-        //             PATH: string,
-        //             PDF_GENERATION_OPTION: '',
-        //             PDF_UPLOAD_EXTRA_ARGS: {
-                        
-        //             }
-        //         }
-        //     },
-        //     version: 'string',
-        //     resource_lock_id: 'string',
-        // }
-
-        let transform_payload = transform_inputs(payload);
+        const payload = event
+        const transform_payload = transform_inputs(payload);
          
         // template bucket details        
-        let template_s3_bucket = transform_payload.template_s3_bucket_details.BUCKET_NAME
-        let template_s3_key = transform_payload.template_s3_bucket_details.OBJECT_KEY
+        const template_s3_bucket = transform_payload.template_s3_bucket_details.BUCKET_NAME
+        const template_s3_key = transform_payload.template_s3_bucket_details.OBJECT_KEY
  
         // Bucket details for storing PDF generated        
-        let pdf_bucket = transform_payload.pdf_s3_bucket_details.BUCKET_NAME;
-        let pdf_file_info = transform_payload.pdf_s3_bucket_details.PDF_FILE_INFO;
-        let pdf_file_path = pdf_file_info.PATH
+        const pdf_bucket = transform_payload.pdf_s3_bucket_details.BUCKET_NAME;
+        const pdf_file_info = transform_payload.pdf_s3_bucket_details.PDF_FILE_INFO;
+        const pdf_file_path = pdf_file_info.PATH
         
         if (pdf_file_path && pdf_file_path.split('.').length > 1 && (!pdf_file_path.endsWith(OUTPUT_PDF_NAME_POSTFIX))){
             console.log('Incorrect pdf file extension')
@@ -56,39 +34,39 @@ exports.handler = async event => {
         if (pdf_file_path && pdf_file_path.split('.').length == 1){
             pdf_file_path = pdf_file_path + OUTPUT_PDF_NAME_POSTFIX
         }
-        let pdf_generation_options = pdf_file_info.PDF_GENERATION_OPTION;
-        let pdf_upload_extra_args = pdf_file_info.PDF_UPLOAD_EXTRA_ARGS;        
+        const pdf_generation_options = pdf_file_info.PDF_GENERATION_OPTION;
+        const pdf_upload_extra_args = pdf_file_info.PDF_UPLOAD_EXTRA_ARGS;        
         // Dynamic data for rendering PDF
-        let render_data = transform_payload.template_dynamic_data
+        const render_data = transform_payload.template_dynamic_data
         
         // Data for queuing purpose
-        let version = transform_payload.version
-        let resource_lock_id = transform_payload.resource_lock_id
+        const version = transform_payload.version
+        const resource_lock_id = transform_payload.resource_lock_id
 
         // template Object
-        let Data = await s3.getObject({ Bucket: template_s3_bucket, Key: template_s3_key }).promise();
+        const Data = await s3.getObject({ Bucket: template_s3_bucket, Key: template_s3_key }).promise();
         
         // Body will be a buffer type so need to convert it to string before converting to pdf
-        let html = Data.Body.toString();
-        let template = nunjucks.compile(html);        
+        const html = Data.Body.toString();
+        const template = nunjucks.compile(html);        
         // Dynamic data rendered into the template
-        let content = template.render(render_data);        
+        const content = template.render(render_data);        
         let options = OUT_PDF_OPTIONS;
         if (pdf_generation_options && Object.keys(pdf_generation_options).length){
             options = pdf_generation_options;
         }        
         // PDF generation
-        let file = await exportHtmlToPdf(content, options);
+        const file = await exportHtmlToPdf(content, options);
 
         // PDF upload to s3
-        let upload_args = PDF_UPLOAD_ARGS;
+        const upload_args = PDF_UPLOAD_ARGS;
         if (pdf_upload_extra_args && Object.keys(pdf_upload_extra_args).length){
             upload_args = pdf_upload_extra_args
         }
         upload_args.Bucket = pdf_bucket
         upload_args.Key = pdf_file_path
         upload_args.Body = file
-        let file_upload_data = await s3.upload(upload_args).promise();
+        const file_upload_data = await s3.upload(upload_args).promise();
 
         // Response formatting
         let message = ''
@@ -124,11 +102,11 @@ exports.handler = async event => {
 }
 
 const transform_inputs = payload => {
-    let template_dynamic_data = payload.template_dynamic_data
-    let template_s3_bucket_details = payload.template_s3_bucket_details
-    let pdf_s3_bucket_details = payload.pdf_s3_bucket_details
-    let version = payload.version
-    let resource_lock_id = payload.resource_lock_id
+    const template_dynamic_data = payload.template_dynamic_data
+    const template_s3_bucket_details = payload.template_s3_bucket_details
+    const pdf_s3_bucket_details = payload.pdf_s3_bucket_details
+    const version = payload.version
+    const resource_lock_id = payload.resource_lock_id
     return {'template_dynamic_data': template_dynamic_data,
             'template_s3_bucket_details': template_s3_bucket_details,
             'pdf_s3_bucket_details': pdf_s3_bucket_details,
