@@ -277,8 +277,8 @@ resource "aws_api_gateway_deployment" "S3APIDeployment" {
 
 # Create a bucket and create folders/directories
 resource "aws_s3_bucket" "bucket" {
-    bucket = "team4s3bucket"
-    acl    = "private"
+  bucket = "team4s3bucket"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "images" {
@@ -340,7 +340,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["ownerId","owneremail"]
+    non_key_attributes = ["ownerId", "owneremail"]
   }
 
   tags = {
@@ -385,7 +385,7 @@ resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["zodiacId","signimagepath"]
+    non_key_attributes = ["zodiacId", "signimagepath"]
   }
   tags = {
     Name        = "dynamodb-table-2-T4"
@@ -410,7 +410,7 @@ resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
     name = "ownerId"
     type = "S"
   }
-  
+
   ttl {
     attribute_name = "TimeToExist"
     enabled        = false
@@ -423,7 +423,7 @@ resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["impId","ownerId"]
+    non_key_attributes = ["impId", "ownerId"]
   }
   tags = {
     Name        = "dynamodb-table-3-T4"
@@ -449,7 +449,7 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
     name = "ownerId"
     type = "S"
   }
-  
+
   ttl {
     attribute_name = "TimeToExist"
     enabled        = false
@@ -462,7 +462,7 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["flyerId","ownerId"]
+    non_key_attributes = ["flyerId", "ownerId"]
   }
   tags = {
     Name        = "dynamodb-table-4-T4"
@@ -487,7 +487,7 @@ resource "aws_dynamodb_table" "users-dynamodb-table" {
     name = "usertype"
     type = "S"
   }
-  
+
   ttl {
     attribute_name = "TimeToExist"
     enabled        = false
@@ -500,7 +500,7 @@ resource "aws_dynamodb_table" "users-dynamodb-table" {
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["userId","usertype"]
+    non_key_attributes = ["userId", "usertype"]
   }
   tags = {
     Name        = "dynamodb-table-5-T4"

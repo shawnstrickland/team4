@@ -24,14 +24,25 @@ resource "aws_iam_policy" "function_logging_policy" {
     "Version" : "2012-10-17",
     "Statement" : [
       {
-        Action : [
+        "Sid" : "AllowLogging",
+        "Action" : [
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "logs:CreateLogGroup",
           "logs:DescribeLogStreams"
         ],
-        Effect : "Allow",
-        Resource : "arn:aws:logs:*:*:*"
+        "Effect" : "Allow",
+        "Resource" : "arn:aws:logs:*:*:*"
+      },
+      {
+        "Sid" : "AllowWritingToS3",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Put*"
+        ],
+        "Resource" : "*"
       }
     ]
   })
@@ -77,38 +88,59 @@ resource "aws_s3_bucket_notification" "aws-lambda-trigger" {
   }
 }
 
-data "archive_file" "lambda_layer_zip" {
+data "archive_file" "zip_main_py" {
   type        = "zip"
-  output_path = "create_pdf_lambda.zip"
-  source_dir  = "${path.module}/functions/create-pdf"
+  output_path = "${path.module}/functions/generate-pdf/main.zip"
+  source_file = "${path.module}/functions/generate-pdf/handler.py"
 }
 
-# # Create PDF Lambda Layer
-# resource "aws_lambda_layer_version" "create_pdf_layer_version" {
-#   filename            = "lambda_layer.zip"
-#   layer_name          = "create_pdf_lambda_layer"
-#   compatible_runtimes = ["nodejs16.x"]
-#   depends_on = [
-#     data.archive_file.lambda_layer_zip
-#   ]
-# }
+data "archive_file" "lambda_layer_package" {
+  type        = "zip"
+  output_path = "${path.module}/functions/generate-pdf/pdfkit.zip"
+  source_dir  = "${path.module}/functions/generate-pdf/"
+}
+
+# Create PDF Lambda Layer PDFKit
+resource "aws_lambda_layer_version" "pdf_kit_lambda_layer" {
+  filename            = "${path.module}/functions/generate-pdf/pdfkit.zip"
+  layer_name          = "pdfkit"
+  compatible_runtimes = ["python3.8", "python3.9"]
+  depends_on = [
+    data.archive_file.lambda_layer_package
+  ]
+}
+
+# Create PDF Lambda Layer external binaries
+resource "aws_lambda_layer_version" "wkhtml_lambda_layer" {
+  filename            = "${path.module}/functions/Common/external/wkhtmltopdf.zip"
+  layer_name          = "wkhtmltopdf"
+  compatible_runtimes = ["python3.8", "python3.9"]
+}
 
 # Create PDF Lambda
-resource "aws_lambda_function" "create_pdf_lambda" {
-  filename      = "create_pdf_lambda.zip"
-  function_name = "create_pdf_flyer"
+resource "aws_lambda_function" "generate_pdf_lambda" {
+  filename      = "${path.module}/functions/generate-pdf/main.zip"
+  function_name = "generate-pdf-lambda"
   role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "index.handler"
-  # layers        = [aws_lambda_layer_version.create_pdf_layer_version.arn]
-  runtime = "nodejs16.x"
-  timeout = 5
+  handler       = "handler.generate_pdf"
+  runtime       = "python3.8"
+  memory_size   = 128
+  timeout       = 30
+  layers = [
+    resource.aws_lambda_layer_version.pdf_kit_lambda_layer.arn,
+    resource.aws_lambda_layer_version.wkhtml_lambda_layer.arn,
+    "arn:aws:lambda:us-east-1:828402573329:layer:wkhtmltopdf-custom:1"
+  ]
+  depends_on = [
+    data.archive_file.zip_main_py,
+    resource.aws_lambda_layer_version.pdf_kit_lambda_layer
+  ]
+  source_code_hash = data.archive_file.zip_main_py.output_base64sha256
+
   environment {
     variables = {
-      FONTCONFIG_PATH = "/opt",
-      LD_LIBRARY_PATH = "/opt"
+      S3_BUCKET_NAME  = "created-pdf-bucket",
+      FONTCONFIG_PATH = "/opt/fonts"
     }
   }
-  # depends_on = [
-  #   aws_lambda_layer_version.create_pdf_layer_version
-  # ]
 }
