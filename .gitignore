@@ -2,7 +2,9 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=csharp,angular,serverless
 
 # ignore zip files, I used dotnet lambda package to generate these, but github actions can take care of this for us
-.zip
+main.zip
+pdfkit.zip
+parse-csv.zip
 
 ### Angular ###
 ## Angular ##
