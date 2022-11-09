@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Home Page - File Upload to S3";
+}
+
+<form enctype="multipart/form-data" method="post" asp-controller="Home" asp-action="UploadFileToS3">
+    <dl>
+        <dt style="margin-bottom: 20px">
+            <label>File Upload to S3 Bucket</label>
+        </dt>        
+        <dd>
+            <input type="file" name="file" id="file">
+
+        </dd>
+    </dl>
+    <input class="btn btn-success" type="submit" value="Upload to S3" />
+</form>
+@if (ViewBag.Success != null)
+{
+    <div>@ViewBag.Success</div>
+}
