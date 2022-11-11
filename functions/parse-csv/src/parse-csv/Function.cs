@@ -4,6 +4,8 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Common.Models;
 
+using ClosedXML.Excel;
+
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -40,8 +42,10 @@ public class Function
     /// <returns></returns>
     public string FunctionHandler(Payload input, ILambdaContext context)
     {
+        // NOTE: files with space in the name do not work!
         var returnString = "";
         foreach (Record record in input.Records) {
+            Console.WriteLine(record.s3.@object.key);
             var request = new GetObjectRequest()
             {
                 BucketName = record.s3.bucket.name,
@@ -50,20 +54,38 @@ public class Function
 
             using (var res = S3Client.GetObjectAsync(request))
             {
-                StreamReader sReader = new StreamReader(res.Result.ResponseStream); //Time out here
-                // string? line = sReader.ReadLine();
-                // Console.WriteLine(line);
+                if (record.s3.@object.key.EndsWith("csv")) {
+                    // parse CSV file
+                    Console.WriteLine("We've got a CSV file!");
+                    StreamReader sReader = new StreamReader(res.Result.ResponseStream);
 
-                while (!sReader.EndOfStream){
-                    var line = sReader.ReadLine();
-                    var values = line.Split(',');
-                    foreach (var item in values){
-                        Console.WriteLine("ITEM: " + item);
+                    while (!sReader.EndOfStream) {
+                        var line = sReader.ReadLine();
+                        var values = line.Split(',');
+                        foreach (var item in values){
+                            Console.WriteLine("ITEM: " + item);
+                        }
+                        // foreach (var coloumn1 in listA){
+                        //     Console.WriteLine(coloumn1);
+                        // }
+                        Console.WriteLine("ROW");
                     }
-                    // foreach (var coloumn1 in listA){
-                    //     Console.WriteLine(coloumn1);
-                    // }
-                    Console.WriteLine("ROW");
+                } else {
+                    // Parse Excel File
+                    Console.WriteLine("We've got an Excel file!");
+
+                    using (var workbook = new XLWorkbook(res.Result.ResponseStream))
+                    {
+                        var ws1 = workbook.Worksheet(1); 
+
+                        var rows = ws1.RangeUsed().RowsUsed().Skip(1); // Skip header row
+                        foreach (var row in rows)
+                        {
+                            var rowNumber = row.RowNumber();
+                            // Process the row
+                            Console.WriteLine("row number" + rowNumber);
+                        }
+                    }
                 }
             }
             returnString += $"Successfully read {record.s3.bucket.name}/{record.s3.@object.key}.";
