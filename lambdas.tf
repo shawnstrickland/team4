@@ -54,16 +54,17 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
 }
 
 resource "aws_lambda_function" "parse_csv_function" {
-  filename      = "${path.module}/functions/parse-csv/src/parse-csv/bin/Release/net6.0/parse-csv.zip"
+  filename      = "${path.module}/functions/parse-csv/src/parse-csv/bin/Release/net6.0/parse-csv2.zip"
   function_name = "parse-csv"
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "parse-csv::parse_csv.Function::FunctionHandler"
   runtime       = "dotnet6"
   timeout       = 10
   memory_size   = 512
+  description   = "Lambda that parses CSV and Excel files for futher processing."
   environment {
     variables = {
-      foo = "bar"
+      foo = "bar2"
     }
   }
   tags = {
@@ -91,7 +92,7 @@ resource "aws_s3_bucket_notification" "aws-lambda-trigger" {
 data "archive_file" "zip_main_py" {
   type        = "zip"
   output_path = "${path.module}/functions/generate-pdf/main.zip"
-  source_file = "${path.module}/functions/generate-pdf/handler.py"
+  source_dir  = "${path.module}/functions/generate-pdf/"
 }
 
 data "archive_file" "lambda_layer_package" {
@@ -124,8 +125,9 @@ resource "aws_lambda_function" "generate_pdf_lambda" {
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "handler.generate_pdf"
   runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 30
+  memory_size   = 1024
+  timeout       = 60
+  description   = "Lambda that generates Zodiac sign PDFs."
   layers = [
     resource.aws_lambda_layer_version.pdf_kit_lambda_layer.arn,
     resource.aws_lambda_layer_version.wkhtml_lambda_layer.arn,
@@ -139,7 +141,7 @@ resource "aws_lambda_function" "generate_pdf_lambda" {
 
   environment {
     variables = {
-      S3_BUCKET_NAME  = "created-pdf-bucket",
+      S3_BUCKET_NAME  = var.created_pdf_bucket,
       FONTCONFIG_PATH = "/opt/fonts"
     }
   }
