@@ -6,6 +6,8 @@ using Common.Models;
 
 using ClosedXML.Excel;
 
+using static SnsSendMessage;
+
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -82,8 +84,14 @@ public class Function
                         foreach (var row in rows)
                         {
                             var rowNumber = row.RowNumber();
+                            var name = row.Cell(1).Value; // Name
+                            DateTime birthDate = (DateTime) row.Cell(2).Value; // Birth Date
                             // Process the row
-                            Console.WriteLine("row number" + rowNumber);
+                            Console.WriteLine(birthDate.GetType());
+                            string month = birthDate.ToString("MMMM").ToLower();
+                            int day = birthDate.Day;
+                            Console.WriteLine("Row number: " + rowNumber + " " + name + " " + birthDate);
+                            Console.WriteLine("Month and Day: " + month + " " + day);
                         }
                     }
                 }
@@ -92,6 +100,9 @@ public class Function
 
             // TODO: do something with this parsed data via database
         }
+        // TODO: Write to SNS send-notification-process-update topic
+        var message = new SnsSendMessage();
+        message.Send("arn:aws:sns:us-east-1:828402573329:test-topic", "test message");
         return returnString;
     }
 }
