@@ -167,4 +167,13 @@ def generate_pdf(event, context):
         "body": object_url
     }
 
+    # Send sns update message
+    message = {"message": "The PDF has been generated"}
+    client = boto3.client('sns')
+    response = client.publish(
+        TargetArn='arn:aws:sns:us-east-1:828402573329:test-topic',
+        Message=json.dumps({'default': json.dumps(message)}),
+        MessageStructure='json'
+    )
+
     return response
