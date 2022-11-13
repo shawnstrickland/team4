@@ -2,7 +2,6 @@ import json
 import pdfkit
 import boto3
 import os
-client = boto3.client('s3')
 import base64
 import uuid
 
@@ -148,6 +147,7 @@ def generate_pdf(event, context):
     
 
     # Upload to S3 Bucket
+    client = boto3.client('s3')
     r = client.put_object(
         Body=open(filepath, 'rb'),
         ContentType='application/pdf',
