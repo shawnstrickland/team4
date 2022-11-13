@@ -102,7 +102,7 @@ public class Function
         }
         // TODO: Write to SNS send-notification-process-update topic
         var message = new SnsSendMessage();
-        message.Send("arn:aws:sns:us-east-1:828402573329:test-topic", "test message");
+        message.Send("arn:aws:sns:us-east-1:828402573329:send-process-update-notification", "test message");
         return returnString;
     }
 }

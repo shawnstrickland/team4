@@ -171,7 +171,7 @@ def generate_pdf(event, context):
     message = {"message": "The PDF has been generated"}
     client = boto3.client('sns')
     response = client.publish(
-        TargetArn='arn:aws:sns:us-east-1:828402573329:test-topic',
+        TargetArn='arn:aws:sns:us-east-1:828402573329:send-process-update-notification',
         Message=json.dumps({'default': json.dumps(message)}),
         MessageStructure='json'
     )
