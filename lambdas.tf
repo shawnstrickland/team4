@@ -48,13 +48,60 @@ resource "aws_iam_policy" "function_logging_policy" {
   })
 }
 
+resource "aws_iam_policy" "write_to_dynamo_lambda" {
+  name = "function-dynamo-write"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "WriteUpdateDynamoParseFunction",
+        "Effect" : "Allow",
+        "Action" : [
+          "dynamodb:BatchWriteItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:UpdateTable"
+        ],
+        "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/T4ImpItemTable"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "write_to_sns_topic" {
+  name = "function-sns-integration"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "SendMessageSNSTopic",
+        "Effect" : "Allow",
+        "Action" : [
+          "sns:Publish"
+        ],
+        "Resource" : "arn:aws:sns:us-east-1:828402573329:*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = aws_iam_policy.function_logging_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "write_dynamo_policy_attachment" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.write_to_dynamo_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "send_message_to_sns_topic" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.write_to_sns_topic.arn
+}
+
 resource "aws_lambda_function" "parse_csv_function" {
-  filename      = "${path.module}/functions/parse-csv/src/parse-csv/bin/Release/net6.0/parse-csv2.zip"
+  filename      = "${path.module}/functions/parse-csv/src/parse-csv/bin/Release/net6.0/parse-csv.zip"
   function_name = "parse-csv"
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "parse-csv::parse_csv.Function::FunctionHandler"
@@ -62,11 +109,7 @@ resource "aws_lambda_function" "parse_csv_function" {
   timeout       = 10
   memory_size   = 512
   description   = "Lambda that parses CSV and Excel files for futher processing."
-  environment {
-    variables = {
-      foo = "bar2"
-    }
-  }
+
   tags = {
     Name = var.tag_name
   }
