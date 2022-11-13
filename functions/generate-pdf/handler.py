@@ -4,6 +4,7 @@ import boto3
 import os
 client = boto3.client('s3')
 import base64
+import uuid
 
 # Get the bucket name environment variables to use in our code
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
@@ -43,10 +44,10 @@ def get_zodiac_sign(month, day):
 def generate_pdf(event, context):
 
     name = event['name']
-    sign = event['sign']
-    date = event['date']
+    month = event['month']
+    day = event['day']
+    sign = get_zodiac_sign(month.lower(), day)
 
-    # TODO: determine sign from date
     # TODO: search for pre-existing celebrity
     # TODO: add images for each sign, swap with dictionary for urls/encoding
 
@@ -67,7 +68,7 @@ def generate_pdf(event, context):
         encoded_font_bold += base64.b64encode(image_file.read()).decode()
 
     # Defaults
-    key = f'{name}-{sign}.pdf'
+    key = f'{uuid.uuid4()}.pdf'
     html = f'''
 <!DOCTYPE html>
 <html>
