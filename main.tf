@@ -287,26 +287,26 @@ resource "aws_s3_bucket_object" "images" {
   content_type = "application/x-directory"
 }
 
-resource "aws_s3_bucket_object" "personal" {
-  bucket       = "team4s3bucket"
-  key          = "zodiacpersonalityimages"
-  content_type = "application/x-directory"
-}
-resource "aws_s3_bucket_object" "pdfflyer" {
-  bucket       = "team4s3bucket"
-  key          = "pdfflyer"
-  content_type = "application/x-directory"
-}
-resource "aws_s3_bucket_object" "csvfolder" {
-  bucket       = "team4s3bucket"
-  key          = "filetoimport"
-  content_type = "application/x-directory"
-}
-resource "aws_s3_bucket_object" "discardfolder" {
-  bucket       = "team4s3bucket"
-  key          = "importedfiles"
-  content_type = "application/x-directory"
-}
+# resource "aws_s3_bucket_object" "personal" {
+#   bucket       = "team4s3bucket"
+#   key          = "zodiacpersonalityimages"
+#   content_type = "application/x-directory"
+# }
+# resource "aws_s3_bucket_object" "pdfflyer" {
+#   bucket       = "team4s3bucket"
+#   key          = "pdfflyer"
+#   content_type = "application/x-directory"
+# }
+# resource "aws_s3_bucket_object" "csvfolder" {
+#   bucket       = "team4s3bucket"
+#   key          = "filetoimport"
+#   content_type = "application/x-directory"
+# }
+# resource "aws_s3_bucket_object" "discardfolder" {
+#   bucket       = "team4s3bucket"
+#   key          = "importedfiles"
+#   content_type = "application/x-directory"
+# }
 
 
 # Dynamodb Tables
@@ -328,10 +328,10 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   global_secondary_index {
     name               = "T4ImpFilerowidIndex"
@@ -373,10 +373,10 @@ resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
     type = "S"
   }
 */
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   global_secondary_index {
     name               = "T4zodiacIndex"
@@ -411,10 +411,10 @@ resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   global_secondary_index {
     name               = "T4ImpItemsIndex"
@@ -450,10 +450,10 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   global_secondary_index {
     name               = "T4FlyerItemsIndex"
@@ -488,10 +488,10 @@ resource "aws_dynamodb_table" "users-dynamodb-table" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
+  # ttl {
+  #   attribute_name = "TimeToExist"
+  #   enabled        = false
+  # }
 
   global_secondary_index {
     name               = "T4UsersIndex"
