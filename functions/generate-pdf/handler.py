@@ -114,7 +114,7 @@ def generate_pdf(event, context):
 <body>
     <div class="centered">
         <h1>{name}</h1>
-        <h2>{date}</h2>
+        <h2>{month} {day}</h2>
         <img src="http://dummyimage.com/600x400/ffffff/c1c3d9.png&text={sign}">
     </div>
 </body>
