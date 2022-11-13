@@ -8,6 +8,38 @@ import base64
 # Get the bucket name environment variables to use in our code
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
+# return zodiac sign based on month and day born
+def get_zodiac_sign(month, day):
+    formatted_month = month.lower()
+    formatted_day = int(day)
+
+    if formatted_month == 'december':
+        astro_sign = 'sagittarius' if (formatted_day < 22) else 'capricorn'
+    elif formatted_month == 'january':
+        astro_sign = 'capricorn' if (formatted_day < 20) else 'aquarius'
+    elif formatted_month == 'february':
+        astro_sign = 'aquarius' if (formatted_day < 19) else 'pisces'
+    elif formatted_month == 'march':
+        astro_sign = 'pisces' if (formatted_day < 21) else 'aries'
+    elif formatted_month == 'april':
+        astro_sign = 'aries' if (formatted_day < 20) else 'taurus'
+    elif formatted_month == 'may':
+        astro_sign = 'taurus' if (formatted_day < 21) else 'gemini'
+    elif formatted_month == 'june':
+        astro_sign = 'gemini' if (formatted_day < 21) else 'cancer'
+    elif formatted_month == 'july':
+        astro_sign = 'cancer' if (formatted_day < 23) else 'leo'
+    elif formatted_month == 'august':
+        astro_sign = 'leo' if (formatted_day < 23) else 'virgo'
+    elif formatted_month == 'september':
+        astro_sign = 'virgo' if (formatted_day < 23) else 'libra'
+    elif formatted_month == 'october':
+        astro_sign = 'libra' if (formatted_day < 23) else 'scorpio'
+    elif formatted_month == 'november':
+        astro_sign = 'scorpio' if (formatted_day < 22) else 'sagittarius'
+    print("The selected astrological sign is :",astro_sign)
+    return astro_sign
+
 def generate_pdf(event, context):
 
     name = event['name']
