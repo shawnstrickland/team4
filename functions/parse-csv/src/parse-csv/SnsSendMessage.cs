@@ -8,7 +8,7 @@ using Amazon.SimpleNotificationService.Model;
 
 public class SnsSendMessage
 {
-    public void Send(string topic, string someOtherMessage)
+    public async Task Send(string topic, string someOtherMessage)
     {
         /* Topic ARNs must be in the correct format:
             *   arn:aws:sns:REGION:ACCOUNT_ID:NAME
@@ -32,7 +32,7 @@ public class SnsSendMessage
         try
         {
             Console.WriteLine("Writing to topic: " + topicArn);
-            var response = client.PublishAsync(request);
+            var response = await client.PublishAsync(request);
 
             Console.WriteLine("Message sent to topic:");
             Console.WriteLine(message);

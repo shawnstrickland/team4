@@ -42,7 +42,7 @@ public class Function
     /// <param name="input"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    public string FunctionHandler(Payload input, ILambdaContext context)
+    public async Task<string> FunctionHandler(Payload input, ILambdaContext context)
     {
         // NOTE: files with space in the name do not work!
         var returnString = "";
@@ -102,7 +102,7 @@ public class Function
         }
         // TODO: Write to SNS send-notification-process-update topic
         var message = new SnsSendMessage();
-        message.Send("arn:aws:sns:us-east-1:828402573329:send-process-update-notification", "test message");
+        await message.Send("arn:aws:sns:us-east-1:828402573329:send-process-update-notification", "test message");
         return returnString;
     }
 }
