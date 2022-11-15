@@ -59,8 +59,8 @@ resource "aws_iam_policy" "write_to_dynamo_lambda" {
         "Action" : [
           "dynamodb:*"
         ],
-        "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/T4usersTable"
-      }
+        "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/*"
+      },
     ]
   })
 }
