@@ -67,7 +67,7 @@ def generate_pdf(event, context):
         encoded_font_bold += base64.b64encode(image_file.read()).decode()
 
     # Defaults
-    key = f'{uuid.uuid4()}.pdf'
+    key = f'{event["keyName"]}.pdf' or f'{uuid.uuid4()}.pdf'
     html = f'''
 <!DOCTYPE html>
 <html>
@@ -169,12 +169,20 @@ def generate_pdf(event, context):
     }
 
     # Send sns update message
-    message = {"message": "The PDF has been generated"}
+    message = {
+        "type": "generated",
+        "message": "The PDF has been generated",
+        "url": object_url,
+        "keyName": key
+        }
     client = boto3.client('sns')
-    response = client.publish(
+    snsResponse = client.publish(
         TargetArn='arn:aws:sns:us-east-1:828402573329:send-process-update-notification',
         Message=json.dumps({'default': json.dumps(message)}),
         MessageStructure='json'
     )
 
-    return response
+    return {
+       'upload': response,
+        'sns': snsResponse
+    }

@@ -472,12 +472,14 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
 
 # Team4 users details provided here 
 resource "aws_dynamodb_table" "users-dynamodb-table" {
-  name           = "T4usersTable"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "userId"
-  range_key      = "usertype"
+  name             = var.users_table
+  billing_mode     = "PROVISIONED"
+  read_capacity    = 20
+  write_capacity   = 20
+  hash_key         = "userId"
+  range_key        = "usertype"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
     name = "userId"

@@ -57,12 +57,9 @@ resource "aws_iam_policy" "write_to_dynamo_lambda" {
         "Sid" : "WriteUpdateDynamoParseFunction",
         "Effect" : "Allow",
         "Action" : [
-          "dynamodb:BatchWriteItem",
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem",
-          "dynamodb:UpdateTable"
+          "dynamodb:*"
         ],
-        "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/T4ImpItemTable"
+        "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/T4usersTable"
       }
     ]
   })
@@ -138,6 +135,13 @@ data "archive_file" "zip_main_py" {
   source_dir  = "${path.module}/functions/generate-pdf/"
 }
 
+data "archive_file" "zip_validate_email_lambda" {
+  type        = "zip"
+  output_path = "${path.module}/functions/validate-email-address/main.zip"
+  source_dir  = "${path.module}/functions/validate-email-address/"
+}
+
+
 data "archive_file" "lambda_layer_package" {
   type        = "zip"
   output_path = "${path.module}/functions/generate-pdf/pdfkit.zip"
@@ -181,6 +185,34 @@ resource "aws_lambda_function" "generate_pdf_lambda" {
     resource.aws_lambda_layer_version.pdf_kit_lambda_layer
   ]
   source_code_hash = data.archive_file.zip_main_py.output_base64sha256
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME  = var.created_pdf_bucket,
+      FONTCONFIG_PATH = "/opt/fonts"
+    }
+  }
+}
+
+# Add dynamo trigger to lambda for validate email address lambda
+resource "aws_lambda_event_source_mapping" "dynamo_trigger_mapping_lambda" {
+  event_source_arn  = aws_dynamodb_table.users-dynamodb-table.stream_arn
+  function_name     = aws_lambda_function.validate_email_address.arn
+  starting_position = "LATEST"
+}
+
+# Validate Email Address Lambda
+resource "aws_lambda_function" "validate_email_address" {
+  filename      = "${path.module}/functions/validate-email-address/main.zip"
+  function_name = "verifyemailaddress"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "handler.validate"
+  runtime       = "python3.8"
+  memory_size   = 128
+  timeout       = 5
+  description   = "Lambda that validates email addresses once triggered from Dynamo INSERT."
+
+  source_code_hash = data.archive_file.zip_validate_email_lambda.output_base64sha256
 
   environment {
     variables = {

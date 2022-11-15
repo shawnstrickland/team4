@@ -27,3 +27,9 @@ variable "pdf_template_bucket" {
   type        = string
   default     = "team-4-pdf-template-bucket"
 }
+
+variable "users_table" {
+  description = "Defined users table for app"
+  type        = string
+  default     = "T4usersTable"
+}

@@ -1,0 +1,9 @@
+{
+    "recipients": ["hi@me.com"],
+    "message": {
+        "text": "Any other information text that wants to be sent with this message.",
+        ""
+    },
+    "fileName": "SampleExcel.xlsx",
+    "subject": "Team 4 Challenge - Process Update: {part-of-process}" // Where part-of-process is Received, Processed, Generated
+}
