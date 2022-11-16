@@ -1,19 +1,37 @@
 import json
 import urllib.parse
 import boto3
+from datetime import datetime
+
+def update_item_verification_sent(table, record, value):
+    table.update_item(
+        Key={
+            'usertype': record['dynamodb']['Keys']['usertype']['S'],
+            'userId': record['dynamodb']['Keys']['userId']['S']
+        },
+        UpdateExpression="set verificationSent=:d",
+        ExpressionAttributeValues={
+            ':d': value
+        }
+    )
 
 def validate(event, context):
-    print('running lambda')
-    for record in event['Records'].values():
-        print(record.eventName)
-        if (record.eventName == "INSERT"):
-            print('should run logic over this INSERT')
-            email_address=event.get('email_address')
-            print("email address")
-            print(email_address)
+    for record in event['Records']:
+        if (record['eventName'] == "INSERT"):
+            email_address = record['dynamodb']['NewImage']['useremail']['S'] # get email from insert body
+            print(record['dynamodb']['Keys']) # grab the keys of the table
+
             ses_client = boto3.client("ses", region_name="us-east-1")
+            dynamodb = boto3.resource('dynamodb')
+            table = dynamodb.Table('T4usersTable')
         
+            # Grab email address from this INSERT
             response = ses_client.verify_email_identity(
                 EmailAddress=email_address
             )
-            print(response)
+
+            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                update_item_verification_sent(table, record, datetime.utcnow().isoformat())
+            else:
+                print('status back from ses was not good, writing default to verificationSent key')
+                update_item_verification_sent(table, record, 'retry')
