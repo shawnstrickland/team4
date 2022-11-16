@@ -149,7 +149,6 @@ data "archive_file" "zip_validate_email_lambda" {
   source_dir  = "${path.module}/functions/validate-email-address/"
 }
 
-
 data "archive_file" "lambda_layer_package" {
   type        = "zip"
   output_path = "${path.module}/functions/generate-pdf/pdfkit.zip"
@@ -221,11 +220,37 @@ resource "aws_lambda_function" "validate_email_address" {
   description   = "Lambda that validates email addresses once triggered from Dynamo INSERT."
 
   source_code_hash = data.archive_file.zip_validate_email_lambda.output_base64sha256
+}
 
-  environment {
-    variables = {
-      S3_BUCKET_NAME  = var.created_pdf_bucket,
-      FONTCONFIG_PATH = "/opt/fonts"
-    }
-  }
+# Add SNS topic trigger to send_email_to_contacts lambda
+resource "aws_sns_topic_subscription" "user_updates_lampda_target" {
+  topic_arn = aws_sns_topic.send_notification_process_update.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.send_email_to_contacts.arn
+}
+
+# Zip up send email to contacts lambda
+data "archive_file" "zip_send_email_to_contacts_lambda" {
+  type        = "zip"
+  output_path = "${path.module}/functions/send-email-to-contacts/main.zip"
+  source_dir  = "${path.module}/functions/send-email-to-contacts/"
+}
+
+# Send Email to Contacts Lambda
+resource "aws_lambda_function" "send_email_to_contacts" {
+  filename      = "${path.module}/functions/send-email-to-contacts/main.zip"
+  function_name = "sendemailtocontacts"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.8"
+  memory_size   = 128
+  timeout       = 10
+  description   = "Takes a list of contacts and sends email to them."
+
+  depends_on = [
+    data.archive_file.zip_send_email_to_contacts_lambda,
+    aws_sns_topic_subscription.user_updates_lampda_target
+  ]
+
+  source_code_hash = data.archive_file.zip_send_email_to_contacts_lambda.output_base64sha256
 }
