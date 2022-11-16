@@ -308,7 +308,6 @@ resource "aws_s3_bucket_object" "discardfolder" {
   content_type = "application/x-directory"
 }
 
-
 # Dynamodb Tables
 
 # userId,usermail,username
@@ -501,4 +500,13 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
     Name        = "dynamodb-table-5-T4"
     Environment = "dev"
   }
+}
+
+resource "aws_sns_topic" "send_notification_process_update" {
+ # used to send a ping (email or whatever) that an update has occurred in the process
+  name = "send-process-update-notification"
+}
+resource "aws_sns_topic" "contact_list_updated" {
+ # used to send internal notification that contact list is updated and logic must be re-ran (efficiently)
+  name = "contact-list-updated"
 }
