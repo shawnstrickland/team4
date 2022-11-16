@@ -311,179 +311,22 @@ resource "aws_s3_bucket_object" "discardfolder" {
 
 # Dynamodb Tables
 
-resource "aws_dynamodb_table" "basic-dynamodb-table" {
-  name           = "T4IMPFileList"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "ownerId"
-  range_key      = "owneremail"
-
-  attribute {
-    name = "ownerId"
-    type = "S"
-  }
-  attribute {
-    name = "owneremail"
-    type = "S"
-  }
-
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
-  global_secondary_index {
-    name               = "T4ImpFilerowidIndex"
-    hash_key           = "ownerId"
-    range_key          = "owneremail"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["ownerId","owneremail"]
-  }
-
-  tags = {
-    Name        = "dynamodb-table-1-T4"
-    Environment = "dev"
-  }
-}
-
-# Zodiac sign table
-
-resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
-  name           = "T4Zodiacable"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "zodiacId"
-  range_key      = "signimagepath"
-
-  attribute {
-    name = "zodiacId"
-    type = "S"
-  }
-  attribute {
-    name = "signimagepath"
-    type = "S"
-  }
-  /*
-  attribute {
-    name = "personalityimagepath"
-    type = "S"
-  }
-*/
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
-  global_secondary_index {
-    name               = "T4zodiacIndex"
-    hash_key           = "zodiacId"
-    range_key          = "signimagepath"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["zodiacId","signimagepath"]
-  }
-  tags = {
-    Name        = "dynamodb-table-2-T4"
-    Environment = "dev"
-  }
-}
-
-
-resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
-  name           = "T4ImpItemTable"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "impId"
-  range_key      = "ownerId"
-
-  attribute {
-    name = "impId"
-    type = "S"
-  }
-  attribute {
-    name = "ownerId"
-    type = "S"
-  }
-  
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
-  global_secondary_index {
-    name               = "T4ImpItemsIndex"
-    hash_key           = "impId"
-    range_key          = "ownerId"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["impId","ownerId"]
-  }
-  tags = {
-    Name        = "dynamodb-table-3-T4"
-    Environment = "dev"
-  }
-}
-
-# Flyer generated details maintained in the following table.
-resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
-  name           = "T4flyerTable"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "flyerId"
-  range_key      = "ownerId"
-
-  attribute {
-    name = "flyerId"
-    type = "S"
-  }
-  attribute {
-    name = "ownerId"
-    type = "S"
-  }
-  
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
-  global_secondary_index {
-    name               = "T4FlyerItemsIndex"
-    hash_key           = "flyerId"
-    range_key          = "ownerId"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["flyerId","ownerId"]
-  }
-  tags = {
-    Name        = "dynamodb-table-4-T4"
-    Environment = "dev"
-  }
-}
-
+# userId,usermail,username
 # Team4 users details provided here 
 resource "aws_dynamodb_table" "users-dynamodb-table" {
-  name           = "T4usersTable"
+  name           = "T4UsersTable"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "userId"
-  range_key      = "usertype"
+  range_key      = "userType"
 
   attribute {
     name = "userId"
     type = "S"
   }
   attribute {
-    name = "usertype"
+    name = "userType"
     type = "S"
   }
   
@@ -495,15 +338,167 @@ resource "aws_dynamodb_table" "users-dynamodb-table" {
   global_secondary_index {
     name               = "T4UsersIndex"
     hash_key           = "userId"
-    range_key          = "usertype"
+    range_key          = "userType"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["userId","usertype"]
+    non_key_attributes = ["userId","userType"]
+  }
+  tags = {
+    Name        = "dynamodb-table-1-T4"
+    Environment = "dev"
+  }
+}
+
+
+#def fileInfoDynamodb(fileId,userId,fullname,usrFilePath,statusFile):
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "T4ImpFileList"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "fileId"
+  range_key      = "userId"
+
+  attribute {
+    name = "fileId"
+    type = "S"
+  }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  global_secondary_index {
+    name               = "T4ImpFileUseridIndex"
+    hash_key           = "fileId"
+    range_key          = "userId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["fileId","userId"]
+  }
+
+  tags = {
+    Name        = "dynamodb-table-2-T4"
+    Environment = "dev"
+  }
+}
+
+
+resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
+  name           = "T4ZodiacTable"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "zodiacId"
+  
+  attribute {
+    name = "zodiacId"
+    type = "S"
+  }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  global_secondary_index {
+    name               = "T4ZodiacIndex"
+    hash_key           = "zodiacId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["zodiacId"]
+  }
+  tags = {
+    Name        = "dynamodb-table-3-T4"
+    Environment = "dev"
+  }
+}
+
+
+#def csvitemsInfoDynamodb(fileId,fullName,dob,sunSign,csvitemStatus):
+#        'csvItemId': csvItemId,'fileUuid':  fileId,'fullName': fullName,
+#            'dateOfBirth': dob, 'sunSign': sunSign,'csvItemStatus': csvitemStatus, # GeneratedPdf,EmailedPdf  
+#            'created_date': str(date.today()), 
+
+resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
+  name           = "T4CsvItemTable"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "csvItemId"
+  range_key      = "fileId"
+
+  attribute {
+    name = "csvItemId"
+    type = "S"
+  }
+  attribute {
+    name = "fileId"
+    type = "S"
+  }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  global_secondary_index {
+    name               = "T4ImpItemsIndex"
+    hash_key           = "csvItemId"
+    range_key          = "fileId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["csvItemId","fileId"]
+  }
+  tags = {
+    Name        = "dynamodb-table-4-T4"
+    Environment = "dev"
+  }
+}
+
+# Flyer generated details maintained in the following table.
+resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
+  name           = "T4flyerTable"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "flyerId"
+  range_key      = "csvItemId"
+
+  attribute {
+    name = "flyerId"
+    type = "S"
+  }
+  attribute {
+    name = "csvItemId"
+    type = "S"
+  }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  global_secondary_index {
+    name               = "T4FlyerItemsIndex"
+    hash_key           = "flyerId"
+    range_key          = "csvItemId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["flyerId","csvItemId"]
   }
   tags = {
     Name        = "dynamodb-table-5-T4"
     Environment = "dev"
   }
 }
-
