@@ -231,18 +231,12 @@ resource "aws_lambda_permission" "add_sns_invoke_send_email_lambda" {
   source_arn    = aws_lambda_function.send_email_to_contacts.arn
 }
 
-resource "aws_lambda_event_source_mapping" "sns_topic_trigger_mapping_lambda" {
-  event_source_arn  = aws_sns_topic.send_notification_process_update.arn
-  function_name     = aws_lambda_function.send_email_to_contacts.arn
-  starting_position = "LATEST"
-}
-
 # Add SNS topic trigger to send_email_to_contacts lambda
-# resource "aws_sns_topic_subscription" "user_updates_lambda_target" {
-#   topic_arn = aws_sns_topic.send_notification_process_update.arn
-#   protocol  = "lambda"
-#   endpoint  = aws_lambda_function.send_email_to_contacts.arn
-# }
+resource "aws_sns_topic_subscription" "user_updates_lambda_target" {
+  topic_arn = aws_sns_topic.send_notification_process_update.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.send_email_to_contacts.arn
+}
 
 # Zip up send email to contacts lambda
 data "archive_file" "zip_send_email_to_contacts_lambda" {
