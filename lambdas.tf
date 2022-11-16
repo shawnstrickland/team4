@@ -61,6 +61,14 @@ resource "aws_iam_policy" "write_to_dynamo_lambda" {
         ],
         "Resource" : "arn:aws:dynamodb:us-east-1:828402573329:table/*"
       },
+      {
+        "Sid" : "VerifyEmailAddress",
+        "Effect" : "Allow",
+        "Action" : [
+          "ses:VerifyEmailIdentity",
+        ],
+        "Resource" : "*"
+      },
     ]
   })
 }
