@@ -2,19 +2,19 @@ import json
 import urllib.parse
 import boto3
 
-def lambda_handler(event, context):
-    email_address=event.get('email_address')
-    first_name=event.get('first_name')
-    last_name=event.get('last_name')
-    url_click=event.get('url_click')
-    ses_client = boto3.client("ses", region_name="us-east-1")
-    CHARSET = "UTF-8"
+ses_client = boto3.client("ses", region_name="us-east-1")
 
+CHARSET = "UTF-8"
+
+def send_email(message, messageAttributes):
+    email_addresses = message['emailAddresses']
+    first_name = message['firstName']
+    last_name= message['lastName']
+    url_click= message['url']
+    
     response = ses_client.send_email(
         Destination={
-            "ToAddresses": [
-                email_address,
-            ],
+            "ToAddresses": email_addresses
         },
         Message={
             "Body": {
@@ -27,8 +27,29 @@ def lambda_handler(event, context):
             },
             "Subject": {
                 "Charset": CHARSET,
-                "Data": "Astroyogi Profile",
+                "Data": "Cloud Challenge App - Update",
             },
         },
         Source="sjstrick@me.com",
     )
+
+    print(response)
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+        # todo: for each notification, grab the contacts that need to be updated
+
+        # todo: pull out any contacts which are not validated yet
+
+        # send an email notification to each contact
+        type = record['Sns']['Type']
+        subject = record['Sns']['Subject']
+        message = json.loads(record['Sns']['Message'])
+        messageAttributes = record['Sns']['MessageAttributes']
+        if subject == 'EmailUpdate':
+            print('sending EmailUpdate...')
+            send_email(message, messageAttributes)
+        else:
+            print('not sending message since subject wasn\'t for emailed updates.')
+
+    

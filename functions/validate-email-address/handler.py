@@ -3,6 +3,10 @@ import urllib.parse
 import boto3
 from datetime import datetime
 
+ses_client = boto3.client("ses", region_name="us-east-1")
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('T4usersTable')
+
 def update_item_verification_sent(table, record, value):
     table.update_item(
         Key={
@@ -19,11 +23,6 @@ def validate(event, context):
     for record in event['Records']:
         if (record['eventName'] == "INSERT"):
             email_address = record['dynamodb']['NewImage']['useremail']['S'] # get email from insert body
-            print(record['dynamodb']['Keys']) # grab the keys of the table
-
-            ses_client = boto3.client("ses", region_name="us-east-1")
-            dynamodb = boto3.resource('dynamodb')
-            table = dynamodb.Table('T4usersTable')
         
             # Grab email address from this INSERT
             response = ses_client.verify_email_identity(

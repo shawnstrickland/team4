@@ -66,6 +66,7 @@ resource "aws_iam_policy" "write_to_dynamo_lambda" {
         "Effect" : "Allow",
         "Action" : [
           "ses:VerifyEmailIdentity",
+          "ses:SendEmail"
         ],
         "Resource" : "*"
       },
@@ -222,12 +223,26 @@ resource "aws_lambda_function" "validate_email_address" {
   source_code_hash = data.archive_file.zip_validate_email_lambda.output_base64sha256
 }
 
-# Add SNS topic trigger to send_email_to_contacts lambda
-resource "aws_sns_topic_subscription" "user_updates_lampda_target" {
-  topic_arn = aws_sns_topic.send_notification_process_update.arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.send_email_to_contacts.arn
+resource "aws_lambda_permission" "add_sns_invoke_send_email_lambda" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.send_email_to_contacts.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_lambda_function.send_email_to_contacts.arn
 }
+
+resource "aws_lambda_event_source_mapping" "sns_topic_trigger_mapping_lambda" {
+  event_source_arn  = aws_sns_topic.send_notification_process_update.arn
+  function_name     = aws_lambda_function.send_email_to_contacts.arn
+  starting_position = "LATEST"
+}
+
+# Add SNS topic trigger to send_email_to_contacts lambda
+# resource "aws_sns_topic_subscription" "user_updates_lambda_target" {
+#   topic_arn = aws_sns_topic.send_notification_process_update.arn
+#   protocol  = "lambda"
+#   endpoint  = aws_lambda_function.send_email_to_contacts.arn
+# }
 
 # Zip up send email to contacts lambda
 data "archive_file" "zip_send_email_to_contacts_lambda" {
@@ -248,8 +263,7 @@ resource "aws_lambda_function" "send_email_to_contacts" {
   description   = "Takes a list of contacts and sends email to them."
 
   depends_on = [
-    data.archive_file.zip_send_email_to_contacts_lambda,
-    aws_sns_topic_subscription.user_updates_lampda_target
+    data.archive_file.zip_send_email_to_contacts_lambda
   ]
 
   source_code_hash = data.archive_file.zip_send_email_to_contacts_lambda.output_base64sha256

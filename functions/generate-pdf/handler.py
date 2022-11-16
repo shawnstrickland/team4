@@ -5,6 +5,9 @@ import os
 import base64
 import uuid
 
+s3 = boto3.client('s3')
+sns = boto3.client('sns')
+
 # Get the bucket name environment variables to use in our code
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 
@@ -67,7 +70,7 @@ def generate_pdf(event, context):
         encoded_font_bold += base64.b64encode(image_file.read()).decode()
 
     # Defaults
-    key = f'{event["keyName"]}.pdf' or f'{uuid.uuid4()}.pdf'
+    key = f'{uuid.uuid4()}.pdf'
     html = f'''
 <!DOCTYPE html>
 <html>
@@ -147,8 +150,7 @@ def generate_pdf(event, context):
     
 
     # Upload to S3 Bucket
-    client = boto3.client('s3')
-    r = client.put_object(
+    r = s3.put_object(
         Body=open(filepath, 'rb'),
         ContentType='application/pdf',
         Bucket=S3_BUCKET_NAME,
@@ -170,15 +172,17 @@ def generate_pdf(event, context):
 
     # Send sns update message
     message = {
-        "type": "generated",
-        "message": "The PDF has been generated",
+        "type": "EmailUpdate",
+        "firstName": "Shawn",
+        "lastName": "Strickland",
+        "emailAddresses": ["sjstrick@me.com"],
         "url": object_url,
         "keyName": key
-        }
-    client = boto3.client('sns')
-    snsResponse = client.publish(
+    }
+
+    snsResponse = sns.publish(
         TargetArn='arn:aws:sns:us-east-1:828402573329:send-process-update-notification',
-        Message=json.dumps({'default': json.dumps(message)}),
+        Message=json.dumps({'default': json.dumps(message) }),
         MessageStructure='json'
     )
 
