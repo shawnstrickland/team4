@@ -173,6 +173,21 @@ resource "aws_lambda_layer_version" "wkhtml_lambda_layer" {
   compatible_runtimes = ["python3.8", "python3.9"]
 }
 
+# Add SNS topic trigger to send_email_to_contacts lambda
+resource "aws_sns_topic_subscription" "generate_pdf_lambda_target" {
+  topic_arn = aws_sns_topic.generate_pdf.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.generate_pdf_lambda.arn
+}
+
+resource "aws_lambda_permission" "add_sns_invoke_generate_pdf_lambda" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.generate_pdf_lambda.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_lambda_function.generate_pdf_lambda.arn
+}
+
 # Create PDF Lambda
 resource "aws_lambda_function" "generate_pdf_lambda" {
   filename      = "${path.module}/functions/generate-pdf/main.zip"

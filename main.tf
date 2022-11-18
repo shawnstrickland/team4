@@ -520,5 +520,7 @@ resource "aws_sns_topic" "contact_list_updated" {
   name = "contact-list-updated"
 }
 
-
-
+resource "aws_sns_topic" "generate_pdf" {
+  # used to send internal notification that contact list is updated and logic must be re-ran (efficiently)
+  name = "generate-pdf"
+}
