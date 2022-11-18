@@ -310,83 +310,79 @@ resource "aws_s3_bucket_object" "images" {
 
 
 # Dynamodb Tables
-
-resource "aws_dynamodb_table" "basic-dynamodb-table" {
-  name           = "T4IMPFileList"
+# userId,usermail,username
+# Team4 users details provided here 
+resource "aws_dynamodb_table" "users-dynamodb-table" {
+  name           = "T4UsersTable"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "ownerId"
-  range_key      = "owneremail"
+  hash_key       = "userId"
+  range_key      = "userType"
 
   attribute {
-    name = "ownerId"
+    name = "userId"
     type = "S"
   }
   attribute {
-    name = "owneremail"
+    name = "userType"
     type = "S"
   }
-
-  # ttl {
-  #   attribute_name = "TimeToExist"
-  #   enabled        = false
-  # }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
 
   global_secondary_index {
-    name               = "T4ImpFilerowidIndex"
-    hash_key           = "ownerId"
-    range_key          = "owneremail"
+    name               = "T4UsersIndex"
+    hash_key           = "userId"
+    range_key          = "userType"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["ownerId", "owneremail"]
+    non_key_attributes = ["userId","userType"]
   }
-
   tags = {
     Name        = "dynamodb-table-1-T4"
     Environment = "dev"
   }
 }
 
-# Zodiac sign table
 
-resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
-  name           = "T4Zodiacable"
+#def fileInfoDynamodb(fileId,userId,fullname,usrFilePath,statusFile):
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "T4ImpFileList"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "zodiacId"
-  range_key      = "signimagepath"
+  hash_key       = "fileId"
+  range_key      = "userId"
 
   attribute {
-    name = "zodiacId"
+    name = "fileId"
     type = "S"
   }
   attribute {
-    name = "signimagepath"
+    name = "userId"
     type = "S"
   }
-  /*
-  attribute {
-    name = "personalityimagepath"
-    type = "S"
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
   }
-*/
-  # ttl {
-  #   attribute_name = "TimeToExist"
-  #   enabled        = false
-  # }
 
   global_secondary_index {
-    name               = "T4zodiacIndex"
-    hash_key           = "zodiacId"
-    range_key          = "signimagepath"
+    name               = "T4ImpFileUseridIndex"
+    hash_key           = "fileId"
+    range_key          = "userId"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["zodiacId", "signimagepath"]
+    non_key_attributes = ["fileId","userId"]
   }
+
   tags = {
     Name        = "dynamodb-table-2-T4"
     Environment = "dev"
@@ -394,36 +390,30 @@ resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
 }
 
 
-resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
-  name           = "T4ImpItemTable"
+resource "aws_dynamodb_table" "zodiac-dynamodb-table" {
+  name           = "T4ZodiacTable"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "impId"
-  range_key      = "ownerId"
-
+  hash_key       = "zodiacId"
+  
   attribute {
-    name = "impId"
+    name = "zodiacId"
     type = "S"
   }
-  attribute {
-    name = "ownerId"
-    type = "S"
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
   }
-
-  # ttl {
-  #   attribute_name = "TimeToExist"
-  #   enabled        = false
-  # }
 
   global_secondary_index {
-    name               = "T4ImpItemsIndex"
-    hash_key           = "impId"
-    range_key          = "ownerId"
+    name               = "T4ZodiacIndex"
+    hash_key           = "zodiacId"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["impId", "ownerId"]
+    non_key_attributes = ["zodiacId"]
   }
   tags = {
     Name        = "dynamodb-table-3-T4"
@@ -432,37 +422,41 @@ resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
 }
 
 
-# Flyer generated details maintained in the following table.
-resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
-  name           = "T4flyerTable"
+#def csvitemsInfoDynamodb(fileId,fullName,dob,sunSign,csvitemStatus):
+#        'csvItemId': csvItemId,'fileUuid':  fileId,'fullName': fullName,
+#            'dateOfBirth': dob, 'sunSign': sunSign,'csvItemStatus': csvitemStatus, # GeneratedPdf,EmailedPdf  
+#            'created_date': str(date.today()), 
+
+resource "aws_dynamodb_table" "imported-file-records-dynamodb-table" {
+  name           = "T4CsvItemTable"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "flyerId"
-  range_key      = "ownerId"
+  hash_key       = "csvItemId"
+  range_key      = "fileId"
 
   attribute {
-    name = "flyerId"
+    name = "csvItemId"
     type = "S"
   }
   attribute {
-    name = "ownerId"
+    name = "fileId"
     type = "S"
   }
-
-  # ttl {
-  #   attribute_name = "TimeToExist"
-  #   enabled        = false
-  # }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
 
   global_secondary_index {
-    name               = "T4FlyerItemsIndex"
-    hash_key           = "flyerId"
-    range_key          = "ownerId"
+    name               = "T4ImpItemsIndex"
+    hash_key           = "csvItemId"
+    range_key          = "fileId"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["flyerId", "ownerId"]
+    non_key_attributes = ["csvItemId","fileId"]
   }
   tags = {
     Name        = "dynamodb-table-4-T4"
@@ -470,39 +464,37 @@ resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
   }
 }
 
-# Team4 users details provided here 
-resource "aws_dynamodb_table" "users-dynamodb-table" {
-  name             = var.users_table
-  billing_mode     = "PROVISIONED"
-  read_capacity    = 20
-  write_capacity   = 20
-  hash_key         = "userId"
-  range_key        = "usertype"
-  stream_enabled   = true
-  stream_view_type = "NEW_AND_OLD_IMAGES"
+# Flyer generated details maintained in the following table.
+resource "aws_dynamodb_table" "flyer-generated-dynamodb-table" {
+  name           = "T4flyerTable"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "flyerId"
+  range_key      = "csvItemId"
 
   attribute {
-    name = "userId"
+    name = "flyerId"
     type = "S"
   }
   attribute {
-    name = "usertype"
+    name = "csvItemId"
     type = "S"
   }
-
-  # ttl {
-  #   attribute_name = "TimeToExist"
-  #   enabled        = false
-  # }
+  
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
 
   global_secondary_index {
-    name               = "T4UsersIndex"
-    hash_key           = "userId"
-    range_key          = "usertype"
+    name               = "T4FlyerItemsIndex"
+    hash_key           = "flyerId"
+    range_key          = "csvItemId"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["userId", "usertype"]
+    non_key_attributes = ["flyerId","csvItemId"]
   }
   tags = {
     Name        = "dynamodb-table-5-T4"
